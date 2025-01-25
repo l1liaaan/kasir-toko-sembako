@@ -87,37 +87,6 @@
       margin-top: 20px;
     }
 
-    .nota {
-      margin-top: 20px;
-      background: #f9fafb;
-      padding: 10px;
-      border-radius: 8px;
-    }
-
-    .nota-popup {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 80%;
-      margin: 0 auto;
-    }
-
-    .nota-popup-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      z-index: 1000;
-    }
-
-    .nota-popup-content {
-      white-space: pre-line;
-    }
-
     .history {
       margin-top: 40px;
     }
@@ -141,6 +110,33 @@
     }
 
     .history-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .nota-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 300px;
+    }
+
+    .nota-popup button {
+      margin-top: 10px;
+      background-color: #007bff;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .nota-popup button:hover {
       background-color: #0056b3;
     }
   </style>
@@ -183,21 +179,7 @@
 
     <div class="total" id="total">Total: Rp 0</div>
 
-    <div class="nota" id="nota">
-      <h2>Nota</h2>
-      <p id="nota-content">Belum ada transaksi.</p>
-    </div>
-
-    <button class="btn" onclick="showNotaPopup()">Tampilkan Nota</button>
     <button class="btn" onclick="finishTransaction()">Selesai</button>
-  </div>
-
-  <div class="nota-popup-overlay" id="popup-overlay"></div>
-  <div class="nota-popup" id="nota-popup">
-    <h2>Nota Transaksi</h2>
-    <pre id="nota-popup-content">Belum ada transaksi.</pre>
-    <button class="btn" onclick="copyNota()">Salin Nota</button>
-    <button class="btn" onclick="closeNotaPopup()">Tutup</button>
   </div>
 
   <div class="history" id="history">
@@ -213,6 +195,13 @@
       </thead>
       <tbody id="history-list"></tbody>
     </table>
+  </div>
+
+  <div class="nota-popup" id="nota-popup">
+    <h2>Nota Transaksi</h2>
+    <pre id="nota-popup-content"></pre>
+    <button onclick="copyNota()">Salin Nota</button>
+    <button onclick="closePopup()">Tutup</button>
   </div>
 
   <script>
@@ -246,7 +235,6 @@
 
         updateCart();
         updateTotal();
-        updateNota();
 
         // Clear the inputs after adding an item
         document.getElementById('item').value = '';
@@ -277,51 +265,14 @@
       document.getElementById('total').textContent = `Total: Rp ${total.toLocaleString()}`;
     }
 
-    // Update nota display
-    function updateNota() {
-      let notaContent = '';
-      cart.forEach(entry => {
-        notaContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
-      });
-      notaContent += `\nTotal: Rp ${total.toLocaleString()}`;
-      document.getElementById('nota-content').textContent = notaContent;
-    }
-
-    // Show nota in popup
-    function showNotaPopup() {
-      let notaContent = '';
-      cart.forEach(entry => {
-        notaContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
-      });
-      notaContent += `\nTotal: Rp ${total.toLocaleString()}`;
-      document.getElementById('nota-popup-content').textContent = notaContent;
-
-      document.getElementById('popup-overlay').style.display = 'block';
-      document.getElementById('nota-popup').style.display = 'block';
-    }
-
-    // Close nota popup
-    function closeNotaPopup() {
-      document.getElementById('popup-overlay').style.display = 'none';
-      document.getElementById('nota-popup').style.display = 'none';
-    }
-
-    // Copy nota content to clipboard
-    function copyNota() {
-      const notaText = document.getElementById('nota-popup-content').innerText;
-      navigator.clipboard.writeText(notaText).then(() => {
-        alert('Nota berhasil disalin!');
-      });
-    }
-
-    // Finish transaction and save to history
+    // Finish transaction and show note as popup
     function finishTransaction() {
       if (!buyerName) {
         alert("Masukkan nama pembeli terlebih dahulu.");
         return;
       }
 
-      const transactionDate = new Date().toLocaleString();
+      const transactionDate = new Date().toLocaleDateString(); // Only show date, no time
       history.push({
         date: transactionDate,
         buyerName: buyerName,
@@ -330,7 +281,35 @@
       });
 
       updateHistory();
+      showNotaPopup(transactionDate);
       resetTransaction();
+    }
+
+    // Show nota in popup
+    function showNotaPopup(date) {
+      let notaContent = '';
+      cart.forEach(entry => {
+        notaContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
+      });
+      notaContent += `\nTotal: Rp ${total.toLocaleString()}`;
+
+      document.getElementById('nota-popup-content').textContent = `Nota\nTanggal: ${date}\nPembeli: ${buyerName}\n\n${notaContent}`;
+      document.getElementById('nota-popup').style.display = 'block';
+    }
+
+    // Copy nota to clipboard
+    function copyNota() {
+      const notaContent = document.getElementById('nota-popup-content').textContent;
+      navigator.clipboard.writeText(notaContent).then(function() {
+        alert("Nota berhasil disalin!");
+      }, function() {
+        alert("Gagal menyalin nota.");
+      });
+    }
+
+    // Close nota popup
+    function closePopup() {
+      document.getElementById('nota-popup').style.display = 'none';
     }
 
     // Update history list
@@ -349,7 +328,7 @@
       });
     }
 
-    // View history details
+    // View history details and show note in popup
     function viewHistory(index) {
       const entry = history[index];
       let historyDetails = '';
@@ -358,7 +337,8 @@
       });
       historyDetails += `\nTotal: Rp ${entry.total.toLocaleString()}`;
 
-      alert(`Nota:\n${historyDetails}`);
+      document.getElementById('nota-popup-content').textContent = `Nota\nTanggal: ${entry.date}\nPembeli: ${entry.buyerName}\n\n${historyDetails}`;
+      document.getElementById('nota-popup').style.display = 'block';
     }
 
     // Reset transaction data
@@ -370,7 +350,6 @@
       document.getElementById('price').value = '';
       updateCart();
       updateTotal();
-      updateNota();
       document.getElementById('buyer-section').style.display = 'block';
       document.getElementById('buyer').disabled = false;
       buyerName = "";
