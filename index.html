@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kasir Toko Sembako</title>
+  <title>Kasir Toko Adelia</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -59,12 +59,12 @@
     }
 
     table th {
-      background-color: #f9fafb;
-      color: #555;
+      background-color: #4CAF50;
+      color: white;
     }
 
     .btn {
-      background-color: #007bff;
+      background-color: #28a745;
       color: white;
       padding: 12px 18px;
       border: none;
@@ -76,7 +76,7 @@
     }
 
     .btn:hover {
-      background-color: #0056b3;
+      background-color: #218838;
     }
 
     .total {
@@ -109,6 +109,7 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       max-width: 400px;
       z-index: 1000;
+      border: 2px solid #28a745;
     }
 
     .nota-popup-overlay {
@@ -169,6 +170,10 @@
   <div class="container">
     <h1>Kasir Toko Sembako</h1>
     <div class="form-group">
+      <label for="buyer">Nama Pembeli:</label>
+      <input type="text" id="buyer" placeholder="Masukkan nama pembeli">
+    </div>
+    <div class="form-group">
       <label for="item">Nama Barang:</label>
       <input type="text" id="item" placeholder="Masukkan nama barang">
     </div>
@@ -207,7 +212,17 @@
   <div class="nota-popup-overlay" id="popup-overlay"></div>
   <div class="nota-popup" id="nota-popup">
     <h2>Nota Transaksi</h2>
-    <pre id="nota-popup-content"></pre>
+    <table>
+      <thead>
+        <tr>
+          <th>Nama Barang</th>
+          <th>Jumlah</th>
+          <th>Harga</th>
+        </tr>
+      </thead>
+      <tbody id="nota-table-content"></tbody>
+    </table>
+    <div id="nota-popup-total"></div>
     <button class="btn" onclick="copyNota()">Salin Nota</button>
     <button class="btn" onclick="closeNotaPopup()">Tutup</button>
   </div>
@@ -219,6 +234,7 @@
         <tr>
           <th>No</th>
           <th>Tanggal</th>
+          <th>Nama Pembeli</th>
           <th>Detail Nota</th>
         </tr>
       </thead>
@@ -232,13 +248,14 @@
     let history = [];
 
     function addItem() {
+      const buyer = document.getElementById('buyer').value;
       const item = document.getElementById('item').value;
       const quantity = parseInt(document.getElementById('quantity').value);
       const price = parseInt(document.getElementById('price').value);
 
-      if (item && quantity && price) {
+      if (buyer && item && quantity && price) {
         const totalPrice = quantity * price;
-        cart.push({ item, quantity, price: totalPrice });
+        cart.push({ buyer, item, quantity, price: totalPrice });
         total += totalPrice;
 
         updateCart();
@@ -248,8 +265,9 @@
         document.getElementById('item').value = '';
         document.getElementById('quantity').value = '';
         document.getElementById('price').value = '';
+        document.getElementById('buyer').value = '';
       } else {
-        alert('Masukkan nama, jumlah, dan harga barang dengan benar.');
+        alert('Masukkan semua data dengan benar.');
       }
     }
 
@@ -276,18 +294,23 @@
       cart.forEach(entry => {
         notaContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
       });
-      notaContent += `\nTotal: Rp ${total.toLocaleString()}\nTotal Item: ${cart.length}`;
+      notaContent += `\nTotal: Rp ${total.toLocaleString()}`;
       document.getElementById('nota-content').textContent = notaContent;
     }
 
     function showNotaPopup() {
-      let notaPopupContent = '';
+      const notaTableContent = document.getElementById('nota-table-content');
+      notaTableContent.innerHTML = '';
       cart.forEach(entry => {
-        notaPopupContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
+        const row = `<tr>
+          <td>${entry.item}</td>
+          <td>${entry.quantity}</td>
+          <td>Rp ${entry.price.toLocaleString()}</td>
+        </tr>`;
+        notaTableContent.innerHTML += row;
       });
-      notaPopupContent += `\nTotal: Rp ${total.toLocaleString()}\nTotal Item: ${cart.length}`;
-      document.getElementById('nota-popup-content').textContent = notaPopupContent;
 
+      document.getElementById('nota-popup-total').textContent = `Total: Rp ${total.toLocaleString()}`;
       document.getElementById('popup-overlay').style.display = 'block';
       document.getElementById('nota-popup').style.display = 'block';
     }
@@ -304,6 +327,7 @@
     }
 
     function finishTransaction() {
+      const buyer = document.getElementById('buyer').value;
       const date = new Date();
       const dateString = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 
@@ -312,6 +336,7 @@
       listItem.innerHTML = `
         <td>${history.length + 1}</td>
         <td>${dateString}</td>
+        <td>${buyer}</td>
         <td><button class="btn" onclick="viewNota(${history.length})">Lihat</button></td>
       `;
       document.getElementById('history-list').appendChild(listItem);
