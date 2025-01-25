@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kasir Toko Sembako</title>
+  <title>Kasir Toko Adelia</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -86,6 +86,36 @@
       padding: 10px;
       border-radius: 4px;
     }
+
+    .nota-content {
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .nota-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      z-index: 1000;
+    }
+
+    .nota-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -94,6 +124,10 @@
     <div class="form-group">
       <label for="item">Nama Barang:</label>
       <input type="text" id="item" placeholder="Masukkan nama barang">
+    </div>
+    <div class="form-group">
+      <label for="quantity">Jumlah Barang:</label>
+      <input type="number" id="quantity" placeholder="Masukkan jumlah barang" min="1">
     </div>
     <div class="form-group">
       <label for="price">Harga Barang:</label>
@@ -105,6 +139,7 @@
       <thead>
         <tr>
           <th>Nama Barang</th>
+          <th>Jumlah</th>
           <th>Harga</th>
         </tr>
       </thead>
@@ -117,6 +152,16 @@
       <h2>Nota</h2>
       <p id="nota-content">Belum ada transaksi.</p>
     </div>
+
+    <button class="btn" onclick="showNotaPopup()">Tampilkan Nota</button>
+  </div>
+
+  <div class="nota-popup-overlay" id="popup-overlay"></div>
+  <div class="nota-popup" id="nota-popup">
+    <h2>Nota Transaksi</h2>
+    <pre id="nota-popup-content"></pre>
+    <button class="btn" onclick="copyNota()">Salin Nota</button>
+    <button class="btn" onclick="closeNotaPopup()">Tutup</button>
   </div>
 
   <script>
@@ -125,20 +170,23 @@
 
     function addItem() {
       const item = document.getElementById('item').value;
+      const quantity = parseInt(document.getElementById('quantity').value);
       const price = parseInt(document.getElementById('price').value);
 
-      if (item && price) {
-        cart.push({ item, price });
-        total += price;
+      if (item && quantity && price) {
+        const totalPrice = quantity * price;
+        cart.push({ item, quantity, price: totalPrice });
+        total += totalPrice;
 
         updateCart();
         updateTotal();
         updateNota();
 
         document.getElementById('item').value = '';
+        document.getElementById('quantity').value = '';
         document.getElementById('price').value = '';
       } else {
-        alert('Masukkan nama dan harga barang dengan benar.');
+        alert('Masukkan nama, jumlah, dan harga barang dengan benar.');
       }
     }
 
@@ -149,6 +197,7 @@
       cart.forEach((entry, index) => {
         const row = `<tr>
           <td>${entry.item}</td>
+          <td>${entry.quantity}</td>
           <td>Rp ${entry.price.toLocaleString()}</td>
         </tr>`;
         cartElement.innerHTML += row;
@@ -162,11 +211,34 @@
     function updateNota() {
       let notaContent = '';
       cart.forEach(entry => {
-        notaContent += `${entry.item}: Rp ${entry.price.toLocaleString()}\n`;
+        notaContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
       });
-      notaContent += `\nTotal: Rp ${total.toLocaleString()}`;
-
+      notaContent += `\nTotal: Rp ${total.toLocaleString()}\nTotal Item: ${cart.length}`;
       document.getElementById('nota-content').textContent = notaContent;
+    }
+
+    function showNotaPopup() {
+      let notaPopupContent = '';
+      cart.forEach(entry => {
+        notaPopupContent += `${entry.item} (x${entry.quantity}): Rp ${entry.price.toLocaleString()}\n`;
+      });
+      notaPopupContent += `\nTotal: Rp ${total.toLocaleString()}\nTotal Item: ${cart.length}`;
+      document.getElementById('nota-popup-content').textContent = notaPopupContent;
+
+      document.getElementById('popup-overlay').style.display = 'block';
+      document.getElementById('nota-popup').style.display = 'block';
+    }
+
+    function closeNotaPopup() {
+      document.getElementById('popup-overlay').style.display = 'none';
+      document.getElementById('nota-popup').style.display = 'none';
+    }
+
+    function copyNota() {
+      const notaText = document.getElementById('nota-popup-content').textContent;
+      navigator.clipboard.writeText(notaText).then(() => {
+        alert('Nota berhasil disalin ke clipboard!');
+      });
     }
   </script>
 </body>
