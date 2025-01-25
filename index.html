@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kasir Toko Adelia</title>
+  <title>Kasir Toko Sembako</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f9;
+      background: url('https://via.placeholder.com/1920x1080') no-repeat center center fixed;
+      background-size: cover;
       color: #333;
     }
 
     .container {
       max-width: 800px;
       margin: 50px auto;
-      background: #fff;
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
@@ -62,16 +63,19 @@
     }
 
     .btn {
-      background-color: #5cb85c;
+      background-color: #007bff;
       color: white;
-      padding: 10px 15px;
+      padding: 12px 18px;
       border: none;
-      border-radius: 4px;
+      border-radius: 25px;
       cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
     }
 
     .btn:hover {
-      background-color: #4cae4c;
+      background-color: #0056b3;
     }
 
     .total {
@@ -116,6 +120,29 @@
       z-index: 999;
       display: none;
     }
+
+    .history {
+      margin-top: 30px;
+    }
+
+    .history h2 {
+      text-align: center;
+      color: #444;
+    }
+
+    .history ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .history li {
+      background: #fff;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
   </style>
 </head>
 <body>
@@ -154,6 +181,7 @@
     </div>
 
     <button class="btn" onclick="showNotaPopup()">Tampilkan Nota</button>
+    <button class="btn" onclick="finishTransaction()">Selesai</button>
   </div>
 
   <div class="nota-popup-overlay" id="popup-overlay"></div>
@@ -162,6 +190,11 @@
     <pre id="nota-popup-content"></pre>
     <button class="btn" onclick="copyNota()">Salin Nota</button>
     <button class="btn" onclick="closeNotaPopup()">Tutup</button>
+  </div>
+
+  <div class="history" id="history">
+    <h2>Riwayat Nota</h2>
+    <ul id="history-list"></ul>
   </div>
 
   <script>
@@ -239,6 +272,20 @@
       navigator.clipboard.writeText(notaText).then(() => {
         alert('Nota berhasil disalin ke clipboard!');
       });
+    }
+
+    function finishTransaction() {
+      const historyList = document.getElementById('history-list');
+      const notaText = document.getElementById('nota-content').textContent;
+      const listItem = document.createElement('li');
+      listItem.textContent = notaText;
+      historyList.appendChild(listItem);
+
+      cart = [];
+      total = 0;
+      updateCart();
+      updateTotal();
+      document.getElementById('nota-content').textContent = 'Belum ada transaksi.';
     }
   </script>
 </body>
